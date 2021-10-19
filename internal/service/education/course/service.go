@@ -1,6 +1,7 @@
 package course
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/ozonmp/omp-bot/internal/model/education"
@@ -54,6 +55,11 @@ func (s *DummyCourseService) Create(course education.Course) (uint64, error) {
 }
 
 func (s *DummyCourseService) Update(courseID uint64, course education.Course) error {
+	if courseID != course.Id {
+		err := errors.New("something goes wrong")
+		return err
+	}
+
 	courseIndex := s.FindElementIndex(courseID)
 	if courseIndex == -1 {
 		err := fmt.Errorf("course with id %d not found", courseID)
