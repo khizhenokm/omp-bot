@@ -2,7 +2,6 @@ package course
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/ozonmp/omp-bot/internal/model/education"
 )
@@ -36,7 +35,7 @@ func (s *DummyCourseService) Describe(courseID uint64) (*education.Course, error
 
 func (s *DummyCourseService) List(cursor uint64, limit uint64) ([]education.Course, error) {
 	if uint64(len(s.courses)) < cursor {
-		return nil, fmt.Errorf("the cursor is out of range")
+		return nil, errors.New("the cursor is out of range")
 	}
 
 	if cursor+limit > uint64(len(s.courses)) {
@@ -76,6 +75,10 @@ func (s *DummyCourseService) Remove(courseID uint64) (bool, error) {
 
 	s.courses = append(s.courses[:courseIndex], s.courses[courseIndex+1:]...)
 	return true, nil
+}
+
+func (c *DummyCourseService) Count() int {
+	return len(c.courses)
 }
 
 func (c *DummyCourseService) GetElementIndex(courseID uint64) (int, error) {

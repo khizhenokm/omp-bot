@@ -15,6 +15,7 @@ type CourseService interface {
 	Create(course education.Course) (uint64, error)
 	Update(courseID uint64, course education.Course) error
 	Remove(courseID uint64) (bool, error)
+	Count() int
 }
 
 type CourseCommander struct {
@@ -32,29 +33,55 @@ func NewEducationCourseCommander(bot *tgbotapi.BotAPI) *CourseCommander {
 }
 
 func (c *CourseCommander) HandleCallback(callback *tgbotapi.CallbackQuery, callbackPath path.CallbackPath) {
+	var err error
 	switch callbackPath.CallbackName {
 	case "list":
-		c.CallbackList(callback, callbackPath)
+		err = c.CallbackList(callback, callbackPath)
 	default:
 		log.Printf("CourseCommander.HandleCallback: unknown callback name: %s", callbackPath.CallbackName)
+	}
+
+	if err != nil {
+		c.HandleError(callback.Message.Chat.ID, err)
 	}
 }
 
 func (c *CourseCommander) HandleCommand(msg *tgbotapi.Message, commandPath path.CommandPath) {
+	var err error
 	switch commandPath.CommandName {
 	case "help":
-		c.Help(msg)
+		err = c.Help(msg)
 	case "list":
-		c.List(msg)
+		err = c.List(msg)
 	case "new":
-		c.New(msg)
+		err = c.New(msg)
 	case "get":
-		c.Get(msg)
+		err = c.Get(msg)
 	case "edit":
-		c.Edit(msg)
+		err = c.Edit(msg)
 	case "delete":
-		c.Delete(msg)
+		err = c.Delete(msg)
 	default:
-		c.Default(msg)
+		err = c.Default(msg)
+	}
+
+	if err != nil {
+		c.HandleError(msg.Chat.ID, err)
+	}
+}
+
+func (c *CourseCommander) HandleError(chatId int64, err error) {
+	var msg tgbotapi.MessageConfig
+	switch err.(type) {
+	case *course.CourseNotFoundError, *BadRequestError:
+		msg = tgbotapi.NewMessage(chatId, err.Error())
+	default:
+		log.Printf("CourseCommander.HandleError: Unknow error happend - %v", err)
+		msg = tgbotapi.NewMessage(chatId, "Unknow error happend pls contact bot administrator")
+	}
+
+	_, err = c.bot.Send(msg)
+	if err != nil {
+		log.Printf("CourseCommander.HandleError: error sending reply message to chat - %v", err)
 	}
 }

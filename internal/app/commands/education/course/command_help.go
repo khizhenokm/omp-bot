@@ -1,12 +1,12 @@
 package course
 
 import (
-	"log"
+	"fmt"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 )
 
-func (c *CourseCommander) Help(inputMessage *tgbotapi.Message) {
+func (c *CourseCommander) Help(inputMessage *tgbotapi.Message) error {
 	msg := tgbotapi.NewMessage(inputMessage.Chat.ID,
 		"/help__education__course — print list of commands\n"+
 			"/get__education__course {courseId} — get a course\n"+
@@ -18,6 +18,8 @@ func (c *CourseCommander) Help(inputMessage *tgbotapi.Message) {
 
 	_, err := c.bot.Send(msg)
 	if err != nil {
-		log.Printf("CourseCommander.Help: error sending reply message to chat - %v", err)
+		return fmt.Errorf("CourseCommander.Help: error sending reply message to chat - %v", err)
 	}
+
+	return nil
 }
