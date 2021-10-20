@@ -26,9 +26,8 @@ func NewDummyCourseService() *DummyCourseService {
 }
 
 func (s *DummyCourseService) Describe(courseID uint64) (*education.Course, error) {
-	courseIndex := s.FindElementIndex(courseID)
-	if courseIndex == -1 {
-		err := fmt.Errorf("course with id %d not found", courseID)
+	courseIndex, err := s.GetElementIndex(courseID)
+	if err != nil {
 		return nil, err
 	}
 
@@ -60,9 +59,8 @@ func (s *DummyCourseService) Update(courseID uint64, course education.Course) er
 		return err
 	}
 
-	courseIndex := s.FindElementIndex(courseID)
-	if courseIndex == -1 {
-		err := fmt.Errorf("course with id %d not found", courseID)
+	courseIndex, err := s.GetElementIndex(courseID)
+	if err != nil {
 		return err
 	}
 
@@ -71,9 +69,8 @@ func (s *DummyCourseService) Update(courseID uint64, course education.Course) er
 }
 
 func (s *DummyCourseService) Remove(courseID uint64) (bool, error) {
-	courseIndex := s.FindElementIndex(courseID)
-	if courseIndex == -1 {
-		err := fmt.Errorf("course with id %d not found", courseID)
+	courseIndex, err := s.GetElementIndex(courseID)
+	if err != nil {
 		return false, err
 	}
 
@@ -81,16 +78,12 @@ func (s *DummyCourseService) Remove(courseID uint64) (bool, error) {
 	return true, nil
 }
 
-func (c *DummyCourseService) FindElementIndex(courseID uint64) int {
-	if c.idSequence < courseID {
-		return -1
-	}
-
+func (c *DummyCourseService) GetElementIndex(courseID uint64) (int, error) {
 	for index, course := range c.courses {
 		if course.Id == courseID {
-			return index
+			return index, nil
 		}
 	}
 
-	return -1
+	return 0, NewCourseNotFoundError(courseID)
 }
